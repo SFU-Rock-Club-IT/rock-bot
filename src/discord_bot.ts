@@ -116,7 +116,7 @@ export class DiscordBot {
 
   private onReady(readyClient: Client<true>): void {
     console.log(`Logged in as ${readyClient.user.tag}`);
-    readyClient.user.setActivity("SFU Rock Club", { type: ActivityType.Custom });
+    readyClient.user.setActivity("Contemplating Slipknot's most recent release", { type: ActivityType.Custom });
   }
 
   private async onInteraction(interaction: Interaction): Promise<void> {

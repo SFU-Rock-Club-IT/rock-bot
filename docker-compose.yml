@@ -1,4 +1,4 @@
-﻿services:
+services:
   bot:
     build: .
     image: sfu-rock-club-bot
@@ -9,14 +9,13 @@
     env_file: .env
 
     environment:
-      # Override the DB path so it lands inside the mounted volume.
-      # Remove this line (and the volume below) if you use Turso cloud instead.
-      TURSO_DATABASE_URL: file:/data/setlist.db
+      # Local SQLite in the mounted volume by default; overridden if TURSO_DATABASE_URL is set in .env
+      TURSO_DATABASE_URL: ${TURSO_DATABASE_URL:-file:/data/setlist.db}
 
     volumes:
       # Persist the local SQLite database between restarts.
       # Remove this if you use Turso cloud (TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
-      - bot_data:/data
+      - bot_sqlite_data:/data
 
 volumes:
-  bot_data:
+  bot_sqlite_data:

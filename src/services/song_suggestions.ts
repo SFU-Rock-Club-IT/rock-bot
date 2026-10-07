@@ -2,7 +2,7 @@ import { createClient } from "@libsql/client";
 import * as Genius from "../utils/genius";
 
 const client = createClient({
-    url: process.env.TURSO_DATABASE_URL ?? "file:setlist.db",
+    url: process.env.TURSO_DATABASE_URL?.trim() || "file:setlist.db",
     authToken: process.env.TURSO_AUTH_TOKEN,
 });
 

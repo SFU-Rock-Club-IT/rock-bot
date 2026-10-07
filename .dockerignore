@@ -1,0 +1,26 @@
+﻿# Runtime and build artefacts
+node_modules
+dist
+out
+*.tgz
+coverage
+
+# Local SQLite DB (persisted via Docker volume instead)
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets — never bake these into the image
+.env
+.env.*
+!.env.example
+
+# Editor / OS noise
+.DS_Store
+.idea
+*.tsbuildinfo
+.cache
+
+# Git history (not needed in image)
+.git
+.gitignore

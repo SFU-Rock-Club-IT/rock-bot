@@ -1,0 +1,22 @@
+﻿services:
+  bot:
+    build: .
+    image: sfu-rock-club-bot
+    restart: unless-stopped
+
+    # Load secrets from a local .env file (never commit this file).
+    # Copy .env.example to .env and fill in your values.
+    env_file: .env
+
+    environment:
+      # Override the DB path so it lands inside the mounted volume.
+      # Remove this line (and the volume below) if you use Turso cloud instead.
+      TURSO_DATABASE_URL: file:/data/setlist.db
+
+    volumes:
+      # Persist the local SQLite database between restarts.
+      # Remove this if you use Turso cloud (TURSO_DATABASE_URL + TURSO_AUTH_TOKEN).
+      - bot_data:/data
+
+volumes:
+  bot_data:

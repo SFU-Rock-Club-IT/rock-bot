@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS SongList (
 CREATE TABLE IF NOT EXISTS Iterests (
     song_id INTEGER NOT NULL,
     username TEXT NOT NULL,
-    instrument TEXT NOT NULL
+    instrument TEXT NOT NULL,
+    PRIMARY KEY (song_id, username, instrument)
 )

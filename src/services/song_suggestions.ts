@@ -159,10 +159,13 @@ export class SuggestionTable {
      */
     async addSong(name: string, artist: string, instrument: Instrument): Promise<boolean> {
         try {
+            const search = await Genius.SearchSongs(`${name} ${artist}`, 1);
+            let name_auto = search.data[0].name;
+            let artist_auto = search.data[0].artist;
             // Check whether this song is already in the list.
             const existing = await client.execute({
                 sql: `SELECT song_id FROM SongList WHERE LOWER(name) = LOWER(?) AND LOWER(artist) = LOWER(?) LIMIT 1`,
-                args: [name, artist],
+                args: [name_auto, artist_auto],
             });
 
             let songId: number;
@@ -170,7 +173,7 @@ export class SuggestionTable {
             if (existing.rows.length === 0) {
                 // New song — look up Genius link first.
                 let geniusLink = "";
-                const search = await Genius.SearchSongs(`${name} ${artist}`, 1);
+                let songmeta;
                 if (search.success && search.data.length > 0) {
                     geniusLink = `https://genius.com/songs/${search.data[0].id}`;
                 }
@@ -178,7 +181,7 @@ export class SuggestionTable {
                 const insert = await client.execute({
                     sql: `INSERT INTO SongList (name, artist, suggestor, genius_link)
                           VALUES (?, ?, ?, ?)`,
-                    args: [name, artist, this._user, geniusLink],
+                    args: [name_auto, artist_auto, this._user, geniusLink],
                 });
 
                 songId = Number(insert.lastInsertRowid);

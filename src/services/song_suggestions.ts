@@ -48,6 +48,14 @@ interface SongEntry {
     interested:  Map<Name, Instrument[]>;
 }
 
+export function interestedSize(song: SongEntry): number {
+    let sum = 0;
+    for (const instruments of song.interested.values()) {
+        sum += instruments.length;
+    }
+    return sum;
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -157,7 +165,7 @@ export class SuggestionTable {
      *
      * @returns `true` on success, `false` if a database error occurred.
      */
-    async addSong(name: string, artist: string, instrument: Instrument): Promise<boolean> {
+    async addSong(name: string, artist: string, instrument: Instrument): Promise<{success: boolean, name?: string, artist?: string}> {
         try {
             const search = await Genius.SearchSongs(`${name} ${artist}`, 1);
             let name_auto = search.data[0].name;
@@ -199,10 +207,10 @@ export class SuggestionTable {
                 args: [songId, this._user, instrument],
             });
 
-            return true;
+            return {success: true, name: name_auto, artist: artist_auto};
         } catch (err) {
             console.error("SuggestionTable.addSong error:", err);
-            return false;
+            return {success: false};
         }
     }
 

@@ -1,6 +1,6 @@
 import { DiscordBot } from "./discord_bot";
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { SuggestionTable, Instrument } from "./services/song_suggestions";
+import { SuggestionTable, Instrument, interestedSize } from "./services/song_suggestions";
 
 const { DISCORD_API_TOKEN, DISCORD_API_CLIENT } = process.env;
 
@@ -36,8 +36,9 @@ bot.registerCommand({
             return;
         }
 
-        if (await database.addSong(song, artist, instrument)) {
-            interaction.reply("Song suggested successfully");
+        const successData = await database.addSong(song, artist, instrument);
+        if (successData.success) {
+            interaction.reply(`Successfully added "${successData.name} by ${successData.artist}" to the suggestion list.`);
         } else {
             interaction.reply("Failed to suggest song");
         }
@@ -48,9 +49,14 @@ bot.registerCommand({
     data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("suggested").setDescription("List only songs you have suggested")),
     execute: async (interaction) => {
         const database = new SuggestionTable(interaction.user.id);
-        const songs = interaction.options.getBoolean("suggested")
+        let songs = interaction.options.getBoolean("suggested")
             ? await database.songsSuggestedByUser()
             : await SuggestionTable.suggestedSongs();
+
+        // Sort songs by number of interested members in descending order
+        songs = songs.sort((a, b) => {
+            return interestedSize(a) < interestedSize(b) ? 1 : -1;
+        })
 
         if (songs.length === 0) {
             interaction.reply("No songs suggested yet");

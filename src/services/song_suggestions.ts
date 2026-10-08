@@ -38,7 +38,7 @@ export enum Instrument {
 
 type Name = string;
 
-interface SongEntry {
+export interface SongEntry {
     song_id:     number;
     name:        string;
     artist:      string;
@@ -54,6 +54,50 @@ export function interestedSize(song: SongEntry): number {
         sum += instruments.length;
     }
     return sum;
+}
+
+/**
+ * Formats interested members grouped by instrument instead of per user.
+ * For example:
+ * Vocals: <@123>
+ * Guitar: <@456>, <@789>
+ */
+export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instrument[]>): string {
+    const interested = source instanceof Map ? source : source.interested;
+    const instrumentUsers = new Map<string, string[]>();
+
+    for (const [userId, instruments] of interested.entries()) {
+        for (const inst of instruments) {
+            const formatted = inst.charAt(0).toUpperCase() + inst.slice(1).toLowerCase();
+            if (!instrumentUsers.has(formatted)) {
+                instrumentUsers.set(formatted, []);
+            }
+            const mention = `<@${userId}>`;
+            const list = instrumentUsers.get(formatted)!;
+            if (!list.includes(mention)) {
+                list.push(mention);
+            }
+        }
+    }
+
+    if (instrumentUsers.size === 0) {
+        return "none";
+    }
+
+    const preferredOrder = ["Vocals", "Guitar", "Bass", "Drums", "Keyboard", "Other"];
+    const roleIDs: any = {"vocals": "1225303735501328456", "guitar": "1225303367099924613", "bass": "1225303399269142608", "drums": "1225303649710768128"}
+    const sorted = [...instrumentUsers.entries()].sort(([a], [b]) => {
+        const indexA = preferredOrder.indexOf(a);
+        const indexB = preferredOrder.indexOf(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b);
+    });
+
+    return sorted
+        .map(([instrument, users]) => `${roleIDs[instrument.toLocaleLowerCase()] != null ? `<@&${roleIDs[instrument.toLowerCase()]}>`: instrument}: ${users.join(", ")}`)
+        .join("\n");
 }
 
 // ---------------------------------------------------------------------------

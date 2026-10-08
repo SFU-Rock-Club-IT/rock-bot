@@ -1,6 +1,6 @@
 import { DiscordBot } from "./discord_bot";
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { SuggestionTable, Instrument, interestedSize } from "./services/song_suggestions";
+import { SuggestionTable, Instrument, interestedSize, formatInterestedByInstrument } from "./services/song_suggestions";
 
 const { DISCORD_API_TOKEN, DISCORD_API_CLIENT } = process.env;
 
@@ -25,18 +25,41 @@ bot.registerCommand({
         const song = interaction.options.getString("song");
         const artist = interaction.options.getString("artist");
         const instrument = interaction.options.getString("instrument")?.toLowerCase();
+        let instrumentList = instrument != undefined ? [instrument] : [];
 
-        if (!song || !artist || !instrument) {
+        if (!song || !artist) {
             interaction.reply("Missing required fields");
             return;
         }
 
-        if (!SuggestionTable.isInstrument(instrument)) {
-            interaction.reply(`Invalid instrument ${instrument}. The following are the only allowed values: ${Object.values(Instrument).join(", ")}`);
+        if (instrument && !SuggestionTable.isInstrument(instrument)) {
+            interaction.reply(`Invalid instrument ${instrument}. Please offer an instrument to play: ${Object.values(Instrument).join(", ")}`);
             return;
         }
 
-        const successData = await database.addSong(song, artist, instrument);
+        if (!instrument) {
+            // fetch the roles of the user
+            // check if any of them are instruments
+            // if so, set instrument to that
+            // otherwise ask the user to specify
+            const roles = interaction.member.roles.cache;
+            console.log("User did not specify instrument, checking roles...");
+            let instruments = await roles.map(role => role.name);
+            instruments = await instruments.filter(role => SuggestionTable.isInstrument(role));
+            console.log(instruments);
+            instrumentList = instruments;
+        }
+
+        if (instrumentList.length === 0) {
+            interaction.reply(`Please offer an instrument to play: ${Object.values(Instrument).join(", ")}`);
+            return;
+        }
+
+        let successData = {success: false};
+        for (const inst of instrumentList) {
+            successData = await database.addSong(song, artist, inst);
+        }
+
         if (successData.success) {
             interaction.reply(`Successfully added "${successData.name} by ${successData.artist}" to the suggestion list.`);
         } else {
@@ -66,15 +89,13 @@ bot.registerCommand({
         const embed = new EmbedBuilder()
             .setTitle("Suggested Songs")
             .setDescription("List of suggested songs")
-            .setColor(0x00FF00);
+            .setColor(0xFF0000);
 
         songs.forEach(song => {
-            const interested = [...song.interested.entries()]
-                .map(([userId, instruments]) => `<@${userId}> (${instruments.join(" & ")})`)
-                .join("\n");
+            const interested = formatInterestedByInstrument(song);
             embed.addFields({
                 name: `${song.name} — ${song.artist}`,
-                value: `Suggested by: <@${song.suggestor}>\nInterested:\n${interested || "none"}\n[Genius](${song.genius_link || "https://genius.com"})`,
+                value: `Suggested by: <@${song.suggestor}>\nInterested:\n${interested}\n[Genius](${song.genius_link || "https://genius.com"})`,
                 // Note: <@id> in embed fields shows a user's display name without pinging them.
                 inline: false,
             });
@@ -105,3 +126,9 @@ bot.registerCommand({
 });
 
 bot.start();
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received. Shutting down gracefully...');
+  bot.stop(); // Properly logs out the bot and closes the WebSocket
+  process.exit(0);
+});

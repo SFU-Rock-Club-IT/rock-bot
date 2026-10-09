@@ -69,14 +69,15 @@ bot.registerCommand({
 });
 
 bot.registerCommand({
-    data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("suggested").setDescription("List only songs you have suggested")),
+    data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("interests").setDescription("List only songs you are interested in playing")),
     execute: async (interaction) => {
 
         const roles = interaction.member.roles.cache;
         let instruments = await Database.updateRoleMapping(roles);
 
         const database = new SuggestionTable(interaction.user.id);
-        let songs = interaction.options.getBoolean("suggested")
+        const userWantsPersonalSongs: boolean = interaction.options.getBoolean("interests") ?? false;
+        let songs = userWantsPersonalSongs
             ? await database.songsSuggestedByUser()
             : await SuggestionTable.suggestedSongs();
 
@@ -96,7 +97,7 @@ bot.registerCommand({
             .setColor(0xFF0000);
 
         songs.forEach(song => {
-            const interested = formatInterestedByInstrument(song);
+            const interested = formatInterestedByInstrument(song, userWantsPersonalSongs);
             embed.addFields({
                 name: `${song.name} — ${song.artist}`,
                 value: `Suggested by: <@${song.suggestor}>\nInterested:\n${interested}\n[Genius](${song.genius_link || "https://genius.com"})`,

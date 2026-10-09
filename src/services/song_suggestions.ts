@@ -43,7 +43,7 @@ export function interestedSize(song: SongEntry): number {
  * Vocals: <@123>
  * Guitar: <@456>, <@789>
  */
-export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instrument[]>): string {
+export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instrument[]>, personal: boolean = false): string {
     const interested = source instanceof Map ? source : source.interested;
     const instrumentUsers = new Map<string, string[]>();
 
@@ -76,7 +76,7 @@ export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instr
     });
 
     return sorted
-        .map(([instrument, users]) => `${Database.roleIDs.has(instrument.toLocaleLowerCase()) ? `<@&${Database.roleIDs.get(instrument.toLowerCase())}>`: instrument}: ${users.join(", ")}`)
+        .map(([instrument, users]) => `${Database.roleIDs.has(instrument.toLocaleLowerCase()) ? `<@&${Database.roleIDs.get(instrument.toLowerCase())}>`: instrument}: ${personal ? users.join(", ") : users.length}`)
         .join("\n");
 }
 

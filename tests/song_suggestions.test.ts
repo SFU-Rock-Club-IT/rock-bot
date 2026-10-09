@@ -48,4 +48,26 @@ describe("formatInterestedByInstrument", () => {
         const formatted = formatInterestedByInstrument(interested);
         expect(formatted).toBe("Vocals: <@222>\nGuitar: <@111>\nDrums: <@333>");
     });
+
+    test("shows only the number of people interested when personal is false", () => {
+        const interested = new Map<string, Instrument[]>([
+            ["111", [Instrument.Vocals]],
+            ["222", [Instrument.Guitar]],
+            ["333", [Instrument.Guitar]],
+        ]);
+
+        const formatted = formatInterestedByInstrument(interested, false);
+        expect(formatted).toBe("Vocals: 1\nGuitar: 2");
+    });
+
+    test("shows list of people interested when personal is true", () => {
+        const interested = new Map<string, Instrument[]>([
+            ["111", [Instrument.Vocals]],
+            ["222", [Instrument.Guitar]],
+            ["333", [Instrument.Guitar]],
+        ]);
+
+        const formatted = formatInterestedByInstrument(interested, true);
+        expect(formatted).toBe("Vocals: <@111>\nGuitar: <@222>, <@333>");
+    });
 });

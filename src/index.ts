@@ -1,6 +1,7 @@
 import { DiscordBot } from "./discord_bot";
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { SuggestionTable, Instrument, interestedSize, formatInterestedByInstrument } from "./services/song_suggestions";
+import { SuggestionTable, Instrument, interestedSize, formatInterestedByInstrument, roleIDs } from "./services/song_suggestions";
+import Database from "./utils/database_setup";
 
 const { DISCORD_API_TOKEN, DISCORD_API_CLIENT } = process.env;
 
@@ -42,10 +43,9 @@ bot.registerCommand({
             // check if any of them are instruments
             // if so, set instrument to that
             // otherwise ask the user to specify
-            const roles = interaction.member.roles.cache;
             console.log("User did not specify instrument, checking roles...");
-            let instruments = await roles.map(role => role.name);
-            instruments = await instruments.filter(role => SuggestionTable.isInstrument(role));
+            const roles = interaction.member.roles.cache;
+            let instruments = await Database.updateRoleMapping(roles);
             console.log(instruments);
             instrumentList = instruments;
         }
@@ -71,6 +71,10 @@ bot.registerCommand({
 bot.registerCommand({
     data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("suggested").setDescription("List only songs you have suggested")),
     execute: async (interaction) => {
+
+        const roles = interaction.member.roles.cache;
+        let instruments = await Database.updateRoleMapping(roles);
+
         const database = new SuggestionTable(interaction.user.id);
         let songs = interaction.options.getBoolean("suggested")
             ? await database.songsSuggestedByUser()
@@ -108,6 +112,10 @@ bot.registerCommand({
 bot.registerCommand({
     data: new SlashCommandBuilder().setName("remove").setDescription("Removes your interest in a song").addStringOption(option => option.setName("song").setDescription("Song to remove")).addStringOption(option => option.setName("artist").setDescription("Artist of the song to remove")),
     execute: async (interaction) => {
+
+        const roles = interaction.member.roles.cache;
+        let instruments = await Database.updateRoleMapping(roles);
+
         const database = new SuggestionTable(interaction.user.id);
         const song = interaction.options.getString("song");
         const artist = interaction.options.getString("artist");

@@ -1,27 +1,8 @@
-import { createClient } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 import * as Genius from "../utils/genius";
+import Database from "../utils/database_setup";
 
-const client = createClient({
-    url: process.env.TURSO_DATABASE_URL?.trim() || "file:setlist.db",
-    authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
-// Initialise the schema on startup so the bot works out of the box.
-await client.executeMultiple(`
-    CREATE TABLE IF NOT EXISTS SongList (
-        song_id   INTEGER PRIMARY KEY AUTOINCREMENT,
-        name      TEXT NOT NULL,
-        artist    TEXT NOT NULL,
-        suggestor TEXT NOT NULL,
-        genius_link TEXT NOT NULL DEFAULT ''
-    );
-    CREATE TABLE IF NOT EXISTS Iterests (
-        song_id    INTEGER NOT NULL,
-        username   TEXT NOT NULL,
-        instrument TEXT NOT NULL,
-        PRIMARY KEY (song_id, username, instrument)
-    );
-`);
+const client: Client = Database.instance;
 
 /**
  * The instrument a member wants to play for a suggested song.
@@ -85,7 +66,6 @@ export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instr
     }
 
     const preferredOrder = ["Vocals", "Guitar", "Bass", "Drums", "Keyboard", "Other"];
-    const roleIDs: any = {"vocals": "1225303735501328456", "guitar": "1225303367099924613", "bass": "1225303399269142608", "drums": "1225303649710768128"}
     const sorted = [...instrumentUsers.entries()].sort(([a], [b]) => {
         const indexA = preferredOrder.indexOf(a);
         const indexB = preferredOrder.indexOf(b);
@@ -96,7 +76,7 @@ export function formatInterestedByInstrument(source: SongEntry | Map<Name, Instr
     });
 
     return sorted
-        .map(([instrument, users]) => `${roleIDs[instrument.toLocaleLowerCase()] != null ? `<@&${roleIDs[instrument.toLowerCase()]}>`: instrument}: ${users.join(", ")}`)
+        .map(([instrument, users]) => `${Database.roleIDs.has(instrument.toLocaleLowerCase()) ? `<@&${Database.roleIDs.get(instrument.toLowerCase())}>`: instrument}: ${users.join(", ")}`)
         .join("\n");
 }
 

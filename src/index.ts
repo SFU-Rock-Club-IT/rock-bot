@@ -14,7 +14,13 @@ const bot = new DiscordBot(DISCORD_API_TOKEN, DISCORD_API_CLIENT);
 bot.registerCommand({
     data: new SlashCommandBuilder().setName("help").setDescription("List all available commands and learn more about the bot"),
     execute: async (interaction) => {
-        interaction.reply("test");
+        interaction.reply(`SFU Rock Club's Official Discord Bot for suggesting songs for jam sessions!\n
+
+**Commands:**\n
+- /help - returns this menu\n
+- /list - See the list of requested songs to play\n
+- /suggest - request a song\n
+- /remove - To remove your interest in a song if you change your mind\n`);
     }
 });
 
@@ -69,7 +75,7 @@ bot.registerCommand({
 });
 
 bot.registerCommand({
-    data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("interests").setDescription("List only songs you are interested in playing")),
+    data: new SlashCommandBuilder().setName("list").setDescription("Lists all suggested songs").addBooleanOption(option => option.setName("mine").setDescription("List only songs you are interested in playing")),
     execute: async (interaction) => {
 
         const roles = interaction.member.roles.cache;

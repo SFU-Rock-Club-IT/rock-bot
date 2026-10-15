@@ -14,13 +14,13 @@ const bot = new DiscordBot(DISCORD_API_TOKEN, DISCORD_API_CLIENT);
 bot.registerCommand({
     data: new SlashCommandBuilder().setName("help").setDescription("List all available commands and learn more about the bot"),
     execute: async (interaction) => {
-        interaction.reply(`SFU Rock Club's Official Discord Bot for suggesting songs for jam sessions!\n
+        interaction.reply(`SFU Rock Club's Official Discord Bot for suggesting songs for jam sessions!
 
-**Commands:**\n
-- /help - returns this menu\n
-- /list - See the list of requested songs to play\n
-- /suggest - request a song\n
-- /remove - To remove your interest in a song if you change your mind\n`);
+**Commands:**
+- /help - returns this menu
+- /list - See the list of requested songs to play
+- /suggest - request a song
+- /remove - To remove your interest in a song if you change your mind`);
     }
 });
 

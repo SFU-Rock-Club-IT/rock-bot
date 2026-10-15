@@ -82,7 +82,7 @@ bot.registerCommand({
         let instruments = await Database.updateRoleMapping(roles);
 
         const database = new SuggestionTable(interaction.user.id);
-        const userWantsPersonalSongs: boolean = interaction.options.getBoolean("interests") ?? false;
+        const userWantsPersonalSongs: boolean = interaction.options.getBoolean("mine") ?? false;
         let songs = userWantsPersonalSongs
             ? await database.songsSuggestedByUser()
             : await SuggestionTable.suggestedSongs();
